@@ -1,2 +1,2 @@
 # format_privacy_policy
-This program splits a privacy policy (or any text) into setences upto to 512 characters.
+This program splits a privacy policy (or any text) into sentences upto to 512 characters.
