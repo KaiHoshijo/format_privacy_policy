@@ -1,5 +1,28 @@
 import re
 import os
+import langdetect
+
+def ensure_English(sentences):
+    """
+        Returns only English sentences from sentences that contain a combination of languages.
+
+        Input:
+            sentences (list): The list of sentences that contains different languages
+        
+        Output:
+            english_sentences (list): The list of sentences that contains only English sentences
+    """
+    english_sentences = []
+
+    for sentence in sentences:
+        # getting the probability of languages in the sentence
+        language_probability = langdetect.detect_langs(sentence)
+        # adding the sentence if only English is detected within the sentence
+        if len(language_probability) == 1 and language_probability[0].lang == "en":
+            english_sentences.append(sentence)
+    
+    return english_sentences
+
 
 def find_lists(sentences):
     """
@@ -126,6 +149,9 @@ def get_sentences(file_name):
 
         # Limiting each section to be up to 512 characters
         sentences = limit_section(sentences, 512)
+
+        # ensuring english sentences
+        sentences = ensure_English(sentences)
 
         base_filename = os.path.basename(file_name)
         with open("sentences_" + base_filename, "w", encoding="utf-8") as new_file:
