@@ -70,7 +70,9 @@ def limit_section(sentences, length_limit):
             # Accounting for sentences greater than 512 characters
             if character_count == length_limit and len(current_sentence) + 1 > length_limit:
                 # Cut off characters up to 511 characters and then add a space at the end
-                current_sentence = current_sentence[:length_limit - 1]
+                remainder_sentence = current_sentence[length_limit:]
+                current_sentence = current_sentence[:length_limit - 2] + "."
+
             # Checking if the current section has enough characters for the next sentence
             character_count -= len(current_sentence) + 1
             if character_count >= 0:
@@ -108,30 +110,31 @@ def get_sentences(file_name):
         # Getting the sentences from each paragraph
         # This is done by iterating through each line from text and splitting it up at the punctuation
         sentences = []
-
+        add_period = lambda sentence: sentence + '.' if sentence[-1] not in [";",":"] else sentence
         for line in line_contents:
             # splitting the line into a list separated by punctuation and add it to the sentences list
             new_sentences = re.split(r'[?.!\n\t]', line)
             # Additionally, the lines that contain nothing are removed
             # Every sentence is ended with a period if the last character isn't in [;, :]
-            add_period = lambda sentence: sentence + '.' if sentence[-1] not in [";",":"] else sentence
-            sentences += [add_period(sentence) for sentence in list(filter(None,new_sentences))]
-            # sentences += [sentence + "." for sentence in list(filter(None,new_sentences))
-            #                 if sentence[-1] not in [";", ":"] else sentence]
+            sentences += list(filter(None, new_sentences))
         
         # Fixing the sentences with lists in them
         sentences = find_lists(sentences)
 
+        for sentence_index in range(len(sentences)):
+            sentences[sentence_index] = sentences[sentence_index] + "."
+
         # Limiting each section to be up to 512 characters
         sentences = limit_section(sentences, 512)
 
-
         base_filename = os.path.basename(file_name)
-        with open("sentences_" + base_filename, "w") as new_file:
+        with open("sentences_" + base_filename, "w", encoding="utf-8") as new_file:
             for sentence in sentences:
+                if sentence.strip()[-1] != ".":
+                    print(sentence[-1])
+                    raise Exception("Bad sentence\n {}".format(sentence))
                 new_file.write(sentence.strip() + "\n")
 
 
 if __name__ == "__main__":
-
-    get_sentences("texts\\privacy2_list.txt")
+    get_sentences("texts\\privacy1.txt")
