@@ -16,7 +16,12 @@ def ensure_English(sentences):
 
     for sentence in sentences:
         # getting the probability of languages in the sentence
-        language_probability = langdetect.detect_langs(sentence)
+        try:
+            language_probability = langdetect.detect_langs(sentence)
+        except langdetect.LangDetectException:
+            # This is when the sentence contains an email address or something similar
+            english_sentences.append(sentence)
+            continue
         # adding the sentence if only English is detected within the sentence
         if len(language_probability) == 1 and language_probability[0].lang == "en":
             english_sentences.append(sentence)
@@ -53,7 +58,12 @@ def find_lists(sentences):
         current_sentence = sentences[sentence_index]
         if current_sentence[-1] in [":", ";"]:
             # get the first non-zero character
-            first_char = sentences[sentence_index+1].strip()[0]
+            first_char = sentences[sentence_index+1].strip()
+            # Go to the next sentence if the current one is only spaces and a new line
+            if len(first_char) == 0:
+                sentence_index += 1
+                continue
+            first_char = first_char[0]
             list_index = sentence_index + 1
             # If the first character matches the list stub then it is consider part of the list
             while(sentences[list_index][0] == first_char and list_index < len(sentences)):
@@ -159,13 +169,26 @@ def get_sentences(file_name):
         sentences = ensure_English(sentences)
 
         base_filename = os.path.basename(file_name)
-        with open("sentences_" + base_filename, "w", encoding="utf-8") as new_file:
+        if not os.path.exists("written"):
+            os.mkdir("written")
+        with open("written/sentences_" + base_filename, "w", encoding="utf-8") as new_file:
             for sentence in sentences:
-                if sentence.strip()[-1] != ".":
+                if len(sentence.strip()) != 0 and sentence.strip()[-1] != ".":
                     print(sentence[-1])
                     raise Exception("Bad sentence\n {}".format(sentence))
                 new_file.write(sentence.strip() + "\n")
 
 
 if __name__ == "__main__":
-    get_sentences("texts\\privacy1.txt")
+    directory = "texts"
+    directory_list = os.listdir(directory)
+    print(len(directory_list))
+    num = 0
+    for filename in directory_list:
+        if num % 5 == 0:
+            print("Current number: {}".format(num))
+        filename = os.path.join(directory, filename)
+        if not os.path.isfile(filename):
+            continue
+        get_sentences(filename)
+        num += 1
