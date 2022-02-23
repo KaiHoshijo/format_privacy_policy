@@ -92,8 +92,13 @@ def limit_section(sentences, length_limit):
             current_sentence = sentences[current_index].strip()
             # Accounting for sentences greater than 512 characters
             if character_count == length_limit and len(current_sentence) + 1 > length_limit:
-                # Cut off characters up to 511 characters and then add a space at the end
+                # Cut off characters up to 511 characters and then add a period at the end
                 remainder_sentence = current_sentence[length_limit:]
+                while len(remainder_sentence) > length_limit:
+                    cutoff = remainder_sentence[:length_limit - 1] + "."
+                    limited_sentences.append(cutoff)
+                    remainder_sentence = remainder_sentence[length_limit:]
+                limited_sentences.append(remainder_sentence)
                 current_sentence = current_sentence[:length_limit - 2] + "."
 
             # Checking if the current section has enough characters for the next sentence
