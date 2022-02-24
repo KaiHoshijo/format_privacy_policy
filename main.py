@@ -129,7 +129,7 @@ def limit_section(sentences, length_limit):
     return limited_sentences
 
 
-def get_sentences(file_name):
+def get_segments(file_name):
     """
         Takes all the paragraphs into a file and breaks it into sentences
 
@@ -148,7 +148,6 @@ def get_sentences(file_name):
         # Getting the sentences from each paragraph
         # This is done by iterating through each line from text and splitting it up at the punctuation
         sentences = []
-        add_period = lambda sentence: sentence + '.' if sentence[-1] not in [";",":"] else sentence
         for line in line_contents:
             # splitting the line into a list separated by punctuation and add it to the sentences list
             new_sentences = re.split(r'[?.!\n\t]', line)
@@ -163,20 +162,39 @@ def get_sentences(file_name):
             sentences[sentence_index] = sentences[sentence_index] + "."
 
         # Limiting each section to be up to 512 characters
-        sentences = limit_section(sentences, 512)
+        segments = limit_section(sentences, 512)
 
         # ensuring english sentences
-        sentences = ensure_English(sentences)
+        segments = ensure_English(segments)
 
-        base_filename = os.path.basename(file_name)
-        if not os.path.exists("written"):
-            os.mkdir("written")
-        with open("written/sentences_" + base_filename, "w", encoding="utf-8") as new_file:
-            for sentence in sentences:
-                if len(sentence.strip()) != 0 and sentence.strip()[-1] != ".":
-                    print(sentence[-1])
-                    raise Exception("Bad sentence\n {}".format(sentence))
-                new_file.write(sentence.strip() + "\n")
+        # ensuring that all sentences end with a sentence
+        for sentence in segments:
+            if len(sentence.strip()) != 0 and sentence.strip()[-1] != ".":
+                sentence[-1] = "."
+        
+        return segments
+    
+def get_sentences(segment):
+    """
+        Takes a segment and returns the sentences within that segment.
+
+        Input:
+            segment (string): The segment to get the list of sentences from
+        
+        Output:
+            sentences (list): The sentences that are within the segment
+    """
+
+    sentences = []
+
+    index = 0
+    while segment.find(".", index) != -1:
+        # getting the sentence from the segment
+        sentence = segment[index:segment.find(".", index) + 1].strip()
+        sentences.append(sentence)
+        index = segment.find(".", index) + 1
+    
+    return sentences
 
 
 if __name__ == "__main__":
@@ -190,5 +208,7 @@ if __name__ == "__main__":
         filename = os.path.join(directory, filename)
         if not os.path.isfile(filename):
             continue
-        get_sentences(filename)
+        segments = get_segments(filename)
+        for segment in segments:
+            get_sentences(segment)
         num += 1
