@@ -1,6 +1,10 @@
 import re
 import os
 import langdetect
+import json
+
+from stanfordcorenlp import StanfordCoreNLP
+
 
 def ensure_English(sentences):
     """
@@ -196,8 +200,33 @@ def get_sentences(segment):
     
     return sentences
 
+def replace_pronouns(nlp, segment):
+    """
+        Takes a segment and replaces all of the pronouns with their proper noun, if possible for the machine algorithm
+
+        Input:
+            segment (string): The segment to replace the pronouns in
+        Output:
+            segment (string): The segment with all pronouns replaced by proper nouns
+    """
+
+    # coding=utf-8
+#    nlp = StanfordCoreNLP('http://localhost', port=9000)
+
+    list = nlp.coref(segment)
+    sentences = re.split(r'[?.!\n\t]', segment)
+    for word in list:
+        replacement = word[0][-1]
+        word.remove(word[0])
+        for r in word:
+            sentence_index = r[0]-1
+            sentences[sentence_index]=sentences[sentence_index].replace(r[3], replacement, 1)
+    return('. '.join(sentences))
+
+
 
 if __name__ == "__main__":
+    nlp = StanfordCoreNLP('C:\\Users\\davsb\\Downloads\\stanford-corenlp-latest\\stanford-corenlp-4.4.0')#must be absolute path to library
     directory = "texts"
     directory_list = os.listdir(directory)
     print(len(directory_list))
@@ -210,5 +239,9 @@ if __name__ == "__main__":
             continue
         segments = get_segments(filename)
         for segment in segments:
+            print(segment)
+            segment = replace_pronouns(nlp, segment)
+            print(segment)
             get_sentences(segment)
         num += 1
+    nlp.close()
