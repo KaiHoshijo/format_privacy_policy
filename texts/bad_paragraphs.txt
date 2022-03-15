@@ -1,2 +1,0 @@
-This is an example of a bad paragraph.
-Each paragraph requires a new line between them to keep it clean.

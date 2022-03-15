@@ -200,7 +200,7 @@ def get_sentences(segment):
     
     return sentences
 
-def replace_pronouns(nlp, segment):
+def replace_pronouns(nlp, segment, name):
     """
         Takes a segment and replaces all of the pronouns with their proper noun, if possible for the machine algorithm
 
@@ -212,7 +212,13 @@ def replace_pronouns(nlp, segment):
 
     # coding=utf-8
 #    nlp = StanfordCoreNLP('http://localhost', port=9000)
-
+    segment = segment.lower()
+    segment.replace(" yourself ", " the user ")
+    segment.replace(" your ", " the user ")
+    segment.replace(" you ", " the user ")
+    segment.replace(" we ", " "+name+" ")
+    segment.replace(" us ", " "+name+" ")
+    segment.replace(" i ", " "+name+" ")
     list = nlp.coref(segment)
     sentences = re.split(r'[?.!\n\t]', segment)
     for word in list:
@@ -220,7 +226,7 @@ def replace_pronouns(nlp, segment):
         word.remove(word[0])
         for r in word:
             sentence_index = r[0]-1
-            sentences[sentence_index]=sentences[sentence_index].replace(r[3], replacement, 1)
+            sentences[sentence_index]=sentences[sentence_index].replace(" "+r[3]+" ", " "+replacement+" ", 1)
     return('. '.join(sentences))
 
 
@@ -230,6 +236,28 @@ if __name__ == "__main__":
     directory = "texts"
     directory_list = os.listdir(directory)
     print(len(directory_list))
+
+    num = 0
+    for filename in directory_list:
+        f = open("fixed\\" + filename, "w")
+        if num % 5 == 0:
+            print("Current number: {}".format(num))
+        filename = os.path.join(directory, filename)
+        if not os.path.isfile(filename):
+            continue
+        segments = get_segments(filename)
+        with open(filename, "r", encoding="utf-8") as text:
+            file_contents = text.read()
+        for segment in segments:
+            segment = ". ".join(get_sentences(segment))
+            print(segment)
+            segment = replace_pronouns(nlp, segment, filename)
+            f.write(segment)
+        num += 1
+        f.close()
+    nlp.close()
+
+"""
     num = 0
     for filename in directory_list:
         if num % 5 == 0:
@@ -238,10 +266,20 @@ if __name__ == "__main__":
         if not os.path.isfile(filename):
             continue
         segments = get_segments(filename)
+        with open(filename, "r", encoding="utf-8") as text:
+            file_contents = text.read()
+        finished = ""
+        i = 0
+        print(len(segments))
         for segment in segments:
-            print(segment)
-            segment = replace_pronouns(nlp, segment)
-            print(segment)
+            i += 1
             get_sentences(segment)
+            if (i < 25):
+                finished += segment
         num += 1
+        segment = replace_pronouns(nlp, finished)
+        f = open("fixed\\"+filename, "w")
+        f.write(segment)
+        f.close()
     nlp.close()
+"""
