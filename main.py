@@ -3,7 +3,7 @@ import os
 import langdetect
 import json
 
-from stanfordcorenlp import StanfordCoreNLP
+# from stanfordcorenlp import StanfordCoreNLP
 
 
 def ensure_English(sentences):
@@ -83,43 +83,43 @@ def find_lists(sentences):
 def limit_section(sentences, length_limit):
     """
         Takes each sentence and limits it to the length_limit. This is done because QA models, like
-        BERT and T5, have a character limit of up to 512 characters.
+        BERT and T5, have a token limit of up to 512 tokens.
 
         Input:
             sentences (list): This is the list, where each sentence will be have its length limited
             length_limit (int): The limit of each sentence
         
         Output:
-            limit_sentences (list): This is the new list where every section is less than 512 characters.
+            limit_sentences (list): This is the new list where every section is less than 512 tokens.
     """
-    # Limiting each text section up to 512 characters before adding it to the new file
-    # 512 comes from how QA models like Bert can take only upto 512 characters for its text
+    # Limiting each text section up to 512 tokens before adding it to the new file
+    # 512 comes from how QA models like Bert can take only upto 512 tokens for its text
     limited_sentences = []
     sentence_index = 0
     while sentence_index < len(sentences):
         section = ""
-        character_count = length_limit
+        token_count = length_limit
 
         current_index = sentence_index
-        # Continue adding sentences until the section over at most 512 characters
-        while current_index < len(sentences) and character_count > 0:
-            current_sentence = sentences[current_index].strip()
-            # Accounting for sentences greater than 512 characters
-            if character_count == length_limit and len(current_sentence) + 1 > length_limit:
-                # Cut off characters up to 511 characters and then add a period at the end
+        # Continue adding sentences until the section over at most 512 tokens
+        while current_index < len(sentences) and token_count > 0:
+            current_sentence = sentences[current_index].strip().split(" ")
+            # Accounting for sentences greater than 512 tokens
+            if token_count == length_limit and len(current_sentence) + 1 > length_limit:
+                # Cut off tokens up to 511 tokens and then add a period at the end
                 remainder_sentence = current_sentence[length_limit:]
                 while len(remainder_sentence) > length_limit:
-                    cutoff = remainder_sentence[:length_limit - 1] + "."
+                    cutoff = " ".join(remainder_sentence[:length_limit - 1]) + "."
                     limited_sentences.append(cutoff)
                     remainder_sentence = remainder_sentence[length_limit:]
-                limited_sentences.append(remainder_sentence)
-                current_sentence = current_sentence[:length_limit - 2] + "."
+                limited_sentences.append(" ".join(remainder_sentence))
+                current_sentence = current_sentence[:length_limit - 2] + ["."]
 
-            # Checking if the current section has enough characters for the next sentence
-            character_count -= len(current_sentence) + 1
-            if character_count >= 0:
-                # Add the sentence if the section does have enough characters
-                section += current_sentence + " "
+            # Checking if the current section has enough words for the next sentence
+            token_count -= len(current_sentence) + 1
+            if token_count >= 0:
+                # Add the sentence if the section does have enough words
+                section += " ".join(current_sentence) + " "
                 # Increment the curent index to get the next sentence
                 current_index += 1
             else:
@@ -165,7 +165,7 @@ def get_segments(file_name):
         for sentence_index in range(len(sentences)):
             sentences[sentence_index] = sentences[sentence_index] + "."
 
-        # Limiting each section to be up to 512 characters
+        # Limiting each section to be up to 512 tokens
         segments = limit_section(sentences, 512)
 
         # ensuring english sentences
@@ -232,14 +232,14 @@ def replace_pronouns(nlp, segment, name):
 
 
 if __name__ == "__main__":
-    nlp = StanfordCoreNLP('C:\\Users\\davsb\\Downloads\\stanford-corenlp-latest\\stanford-corenlp-4.4.0')#must be absolute path to library
+    # nlp = StanfordCoreNLP('C:\\Users\\davsb\\Downloads\\stanford-corenlp-latest\\stanford-corenlp-4.4.0')#must be absolute path to library
     directory = "texts"
     directory_list = os.listdir(directory)
     print(len(directory_list))
 
     num = 0
     for filename in directory_list:
-        f = open("fixed\\" + filename, "w")
+        f = open("fixed//" + filename, "w+", encoding='utf-8')
         if num % 5 == 0:
             print("Current number: {}".format(num))
         filename = os.path.join(directory, filename)
@@ -250,12 +250,12 @@ if __name__ == "__main__":
             file_contents = text.read()
         for segment in segments:
             segment = ". ".join(get_sentences(segment))
-            print(segment)
-            segment = replace_pronouns(nlp, segment, filename)
+            # print(segment)
+            # segment = replace_pronouns(nlp, segment, filename)
             f.write(segment)
         num += 1
         f.close()
-    nlp.close()
+    # nlp.close()
 
 """
     num = 0
