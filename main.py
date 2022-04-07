@@ -239,7 +239,8 @@ def replace_pronouns(nlp, segment, name):
 
 
 if __name__ == "__main__":
-    nlp = StanfordCoreNLP('http://138.67.201.139:8080', 8080)
+    #Should be possible to replace with https://localhost and a port number
+    nlp = StanfordCoreNLP('C:\\Users\\davsb\\Downloads\\stanford-corenlp-latest\\stanford-corenlp-4.4.0')
     directory = "texts"
     directory_list = os.listdir(directory)
     print(len(directory_list))
