@@ -2,7 +2,7 @@ import re
 import os
 import langdetect
 import json
-from corenlp import StanfordCoreNLP
+from corenlp.corenlp import StanfordCoreNLP
 
 
 def ensure_English(sentences):
@@ -227,12 +227,16 @@ def replace_pronouns(nlp, segment, name):
             sentence_index = r[0]-1
             sentences[sentence_index]=sentences[sentence_index].replace(" "+r[3]+" ", " "+replacement+" ", 1)
     return('. '.join(sentences))
+"""
+    nlp = spacy.load('en_core_web_sm')
+    neuralcoref.add_to_pipe(nlp)
+    replaced = segment._.coref_resolved
+    """
 
 
 
 if __name__ == "__main__":
-    # nlp = StanfordCoreNLP('C:\\Users\\davsb\\Downloads\\stanford-corenlp-latest\\stanford-corenlp-4.4.0')#must be absolute path to library
-    nlp = StanfordCoreNLP()
+    nlp = StanfordCoreNLP('http://localhost', 8080)
     directory = "texts"
     directory_list = os.listdir(directory)
     print(len(directory_list))
@@ -250,7 +254,7 @@ if __name__ == "__main__":
             file_contents = text.read()
         for segment in segments:
             segment = ". ".join(get_sentences(segment))
-            # print(segment)
+            print(segment)
             segment = replace_pronouns(nlp, segment, filename)
             f.write(segment)
         num += 1
