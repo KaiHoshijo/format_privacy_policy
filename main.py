@@ -228,7 +228,7 @@ def replace_pronouns(nlp, segment, name):
             sentences[sentence_index]=sentences[sentence_index].replace(" "+r[3]+" ", " "+replacement+" ", 1)
     return('. '.join(sentences))
 """
-    nlp = spacy.load('en_core_web_sm')
+    nlp = spacy.load('en_core_web_sm')s
     neuralcoref.add_to_pipe(nlp)
     replaced = segment._.coref_resolved
     """
